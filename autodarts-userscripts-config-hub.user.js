@@ -2,7 +2,7 @@
 // @id           autodarts-userscripts-config-hub@https://github.com/sebudde/autodarts-userscripts-config-hub
 // @name         Autodarts Userscripts Config Hub (ADUSCH)
 // @namespace    https://github.com/sebudde/autodarts-userscripts-config-hub
-// @version      0.0.1
+// @version      0.0.2
 // @description  Userscript to provide a config page for play.autodarts.io.
 // @author       sebudde / dotty
 // @match        https://play.autodarts.io/*
@@ -10,12 +10,44 @@
 // @license      MIT
 // @downloadURL  https://github.com/sebudde/autodarts-userscripts-config-hub/raw/main/autodarts-userscripts-config-hub.user.js
 // @updateURL    https://github.com/sebudde/autodarts-userscripts-config-hub/raw/main/autodarts-userscripts-config-hub.user.js
-// @grant        GM.getValue
-// @grant        GM.setValue
 // ==/UserScript==
 
-(async function() {
+(function() {
     'use strict';
+
+    unsafeWindow.observeDOM = (() => {
+        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+        const observerOptions = {
+            attributes: true,
+            childList: true,
+            subtree: true
+        };
+
+        return (obj = document, options = {}, classList = [], callback) => {
+            if (!obj) return;
+            const mutationObserver = new MutationObserver((mutationrecords)=> {
+                mutationrecords.some((record) => {
+                    if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
+                        const elementClassList = [...record.addedNodes[0].classList];
+                        return elementClassList.some((className) => {
+                            if (classList?.length) {
+                                if (classList.includes(className)) {
+                                    callback && callback(className);
+                                    return true;
+                                }
+                            } else {
+                                callback && callback(className);
+                            }
+                        });
+                    }
+                })
+            });
+            mutationObserver.observe(obj, {
+                ...observerOptions, ...options
+            });
+            return mutationObserver;
+        };
+    })();
 
     //////////////// CONFIG END ////////////////////
 
@@ -30,27 +62,46 @@
     let firstLoad = true;
 
     let configPathName = '/config';
-    const pageContainer = document.createElement('div');
+    const aduschPageContainer = document.createElement('div');
 
-    const observeDOM = (function() {
-        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-
-        return function(obj, callback) {
-            if (!obj || obj.nodeType !== 1) return;
-            const mutationObserver = new MutationObserver(callback);
-            mutationObserver.observe(obj, {
-                attributes: true,
-                childList: true,
-                subtree: true
-            });
-            return mutationObserver;
-        };
-    })();
+    // const observeDOM = (() => {
+    //     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    //     const observerOptions = {
+    //         attributes: true,
+    //         childList: true,
+    //         subtree: true
+    //     };
+    //
+    //     return (obj = document, options = {}, classList = [], callback) => {
+    //         if (!obj) return;
+    //         const mutationObserver = new MutationObserver((mutationrecords)=> {
+    //             mutationrecords.some((record) => {
+    //                 if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
+    //                     const elementClassList = [...record.addedNodes[0].classList];
+    //                     return elementClassList.some((className) => {
+    //                             if (classList?.length) {
+    //                                 if (classList.includes(className)) {
+    //                                     callback && callback(className);
+    //                                     return true;
+    //                                 }
+    //                             } else {
+    //                                 callback && callback(className);
+    //                             }
+    //                     });
+    //                 }
+    //             })
+    //         });
+    //         mutationObserver.observe(obj, {
+    //             ...observerOptions, ...options
+    //         });
+    //         return mutationObserver;
+    //     };
+    // })();
 
     //////////////// CSS classes start ////////////////////
-    const adp_style = document.createElement('style');
-    adp_style.type = 'text/css';
-    adp_style.innerHTML = `
+    const adusch_style = document.createElement('style');
+    adusch_style.type = 'text/css';
+    adusch_style.innerHTML = `
         body {
           /* mobile viewport bug fix */
           min-height: -webkit-fill-available!important;
@@ -61,17 +112,63 @@
         #root {
             height: 100vh;
         }
-        .adp_config-header {
+        .adusch h2, .adusch h3 {
               font-weight: 700;
               align-self: flex-start;
         }
-        h2.adp_config-header { font-size: 1.5em; }
-        h3.adp_config-header { font-size: 1.2em; }
+        .adusch h2 { font-size: 1.5em; }
+        .adusch h3 { font-size: 1.2em; }
+        .adusch_configcontainer > div {
+            width: 100%;
+        }
+        .adusch_configcontainer section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--chakra-space-4);
+        }
+        .adusch_configcontainer section > div {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .adusch_configcontainer section label {
+            width: 86px;
+            margin-right: 1rem;
+            font-weight: 700;
+        }
+        .adusch_configcontainer section input {
+            width: 300px;
+            height: var(--input-height);
+            font-size: var(--input-font-size);
+            padding-inline-start: var(--input-padding);
+            padding-inline-end: var(--input-padding);
+            border-radius: var(--input-border-radius);
+            min-width: 0px;
+            outline: transparent solid 2px;
+            outline-offset: 2px;
+            position: relative;
+            appearance: none;
+            transition-property: var(--chakra-transition-property-common);
+            transition-duration: var(--chakra-transition-duration-normal);
+            --input-font-size: var(--chakra-fontSizes-md);
+            --input-padding: var(--chakra-space-4);
+            --input-border-radius: var(--chakra-radii-md);
+            --input-height: var(--chakra-sizes-10);
+            border-width: 1px;
+            border-style: solid;
+            border-image: initial;
+            border-color: inherit;
+            background: inherit;
+        }
+        
+        .adusch_configcontainer section input:focus-visible, .adusch_configcontainer section input[data-focus-visible] {
+            z-index: 1;
+            border-color: rgb(99, 179, 237);
+            box-shadow: rgb(99, 179, 237) 0px 0px 0px 1px;
+        }
     `;
-    document.getElementsByTagName('head')[0].appendChild(adp_style);
+    document.getElementsByTagName('head')[0].appendChild(adusch_style);
 
-    let headerEl;
-    let mainContainerEl;
 
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
@@ -87,29 +184,25 @@
 
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
-        headerEl = document.querySelector('.css-gmuwbf');
-        mainContainerEl = document.querySelectorAll('#root > div')[1];
-
-        let hideHeaderGM = await GM.getValue('hideHeader');
-        headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
-        mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
-        mainContainerEl.children[0].style.height = '100%';
 
         if (firstLoad) {
             firstLoad = false;
 
             //////////////// add config page  ////////////////////
+            aduschPageContainer.classList.add('css-gmuwbf');
+            aduschPageContainer.classList.add('adusch');
+            aduschPageContainer.classList.add('adusch_pagecontainer');
+            const aduschConfigContainer = document.createElement('div');
+            aduschConfigContainer.classList.add('css-10z204m');
+            aduschConfigContainer.classList.add('adusch_configcontainer');
+            aduschPageContainer.appendChild(aduschConfigContainer);
+            aduschPageContainer.style.display = 'none';
 
-            pageContainer.classList.add('css-gmuwbf');
-            const configContainer = document.createElement('div');
-            configContainer.classList.add('css-10z204m');
-            pageContainer.appendChild(configContainer);
-            pageContainer.style.display = 'none';
+            const aduschConfigHeader = document.createElement('h2');
+            aduschConfigHeader.innerText = 'Autodarts Userscripts Config Hub';
+            aduschConfigContainer.appendChild(aduschConfigHeader);
 
-            const configHeader = document.createElement('h2');
-            configHeader.classList.add('adp_config-header');
-            configHeader.innerText = 'Config';
-            configContainer.appendChild(configHeader);
+            document.getElementById('root').appendChild(aduschPageContainer);
 
             //////////////// add menu  ////////////////////
             const menuBtn = document.createElement('a');
@@ -122,7 +215,7 @@
 
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
                 document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
-                pageContainer.style.display = 'none';
+                aduschPageContainer.style.display = 'none';
                 if (event.target.classList.contains('adp_menu-btn')) {
                     // switch to page "Matches History" because we need its CSS
                     menuContainer.querySelector('a:nth-of-type(4)').click();
@@ -141,7 +234,7 @@
     const handleConfigPage = () => {
         console.log('config ready');
         document.querySelector('#root > div:nth-of-type(2)').style.display = 'none';
-        pageContainer.style.display = 'flex';
+        aduschPageContainer.style.display = 'flex';
     };
 
     const handleMatchHistory = () => {
@@ -153,23 +246,21 @@
 
     const readyClassesValues = Object.values(readyClasses);
 
-    observeDOM(document.getElementById('root'), function(mutationrecords) {
-        mutationrecords.some((record) => {
-            if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
-                const elemetClassList = [...record.addedNodes[0].classList];
-                return elemetClassList.some((className) => {
-                    if (className.startsWith('css-')) {
-                        // console.log('className', className);
-                        if (!readyClassesValues.includes(className)) return false;
-                        const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
-                        if (key) {
-                            onDOMready();
-                            if (key === 'matchHistory') handleMatchHistory()
-                            return true;
-                        }
-                    }
-                });
+    observeDOM(document.getElementById('root'), {}, readyClassesValues, (className) =>  {
+        if (className.startsWith('css-')) {
+            // console.log('className', className);
+            if (!readyClassesValues.includes(className)) return false;
+            const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
+            if (key) {
+                onDOMready();
+                if (key === 'matchHistory') {
+                    handleMatchHistory();
+                }
             }
-        });
+        }
     });
+
+    // observeDOM(document.getElementById('root'), {}, [], (className) =>  {
+    //     console.log('className',className);
+    // });
 })();
