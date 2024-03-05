@@ -102,6 +102,9 @@
             margin-right: 1rem;
             font-weight: 700;
         }
+        .adusch_configcontainer section label.xl {
+            width: 330px;
+        }
         .adusch_configcontainer section input {
             width: 300px;
             height: var(--input-height);
@@ -127,10 +130,31 @@
             background: inherit;
         }
 
+        .adusch_configcontainer section input.xl {
+            width: 630px;
+        }
+
         .adusch_configcontainer section input:focus-visible, .adusch_configcontainer section input[data-focus-visible] {
             z-index: 1;
             border-color: rgb(99, 179, 237);
             box-shadow: rgb(99, 179, 237) 0px 0px 0px 1px;
+        }
+
+        .adusch_configcontainer section button {
+            border-radius: var(--chakra-radii-md);
+            background: var(--chakra-colors-whiteAlpha-200);
+            font-weight: var(--chakra-fontWeights-semibold);
+            height: var(--chakra-sizes-8);
+            min-width: var(--chakra-sizes-16);
+            padding: 0 var(--chakra-space-4);
+            font-size: var(--chakra-fontSizes-md);
+        }
+        .adusch_configcontainer section button:active:not(:disabled), .adusch_configcontainer section button.active:not(:disabled) {
+            background: var(--chakra-colors-whiteAlpha-400);
+        }
+        .adusch_configcontainer section button:disabled {
+            cursor: default;
+            opacity: 0.5;
         }
     `;
     document.getElementsByTagName('head')[0].appendChild(adusch_style);
