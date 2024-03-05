@@ -2,7 +2,7 @@
 // @id           autodarts-userscripts-config-hub@https://github.com/sebudde/autodarts-userscripts-config-hub
 // @name         Autodarts Userscripts Config Hub (ADUSCH)
 // @namespace    https://github.com/sebudde/autodarts-userscripts-config-hub
-// @version      0.0.3
+// @version      0.0.4
 // @description  Userscript to provide a config page for play.autodarts.io.
 // @author       sebudde / dotty
 // @match        https://play.autodarts.io/*
