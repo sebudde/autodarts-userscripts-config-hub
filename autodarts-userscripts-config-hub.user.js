@@ -2,7 +2,7 @@
 // @id           autodarts-userscripts-config-hub@https://github.com/sebudde/autodarts-userscripts-config-hub
 // @name         Autodarts Userscripts Config Hub (ADUSCH)
 // @namespace    https://github.com/sebudde/autodarts-userscripts-config-hub
-// @version      0.0.2
+// @version      0.0.3
 // @description  Userscript to provide a config page for play.autodarts.io.
 // @author       sebudde / dotty
 // @match        https://play.autodarts.io/*
@@ -25,7 +25,7 @@
 
         return (obj = document, options = {}, classList = [], callback) => {
             if (!obj) return;
-            const mutationObserver = new MutationObserver((mutationrecords)=> {
+            const mutationObserver = new MutationObserver((mutationrecords) => {
                 mutationrecords.some((record) => {
                     if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
                         const elementClassList = [...record.addedNodes[0].classList];
@@ -40,7 +40,7 @@
                             }
                         });
                     }
-                })
+                });
             });
             mutationObserver.observe(obj, {
                 ...observerOptions, ...options
@@ -63,40 +63,6 @@
 
     let configPathName = '/config';
     const aduschPageContainer = document.createElement('div');
-
-    // const observeDOM = (() => {
-    //     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-    //     const observerOptions = {
-    //         attributes: true,
-    //         childList: true,
-    //         subtree: true
-    //     };
-    //
-    //     return (obj = document, options = {}, classList = [], callback) => {
-    //         if (!obj) return;
-    //         const mutationObserver = new MutationObserver((mutationrecords)=> {
-    //             mutationrecords.some((record) => {
-    //                 if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
-    //                     const elementClassList = [...record.addedNodes[0].classList];
-    //                     return elementClassList.some((className) => {
-    //                             if (classList?.length) {
-    //                                 if (classList.includes(className)) {
-    //                                     callback && callback(className);
-    //                                     return true;
-    //                                 }
-    //                             } else {
-    //                                 callback && callback(className);
-    //                             }
-    //                     });
-    //                 }
-    //             })
-    //         });
-    //         mutationObserver.observe(obj, {
-    //             ...observerOptions, ...options
-    //         });
-    //         return mutationObserver;
-    //     };
-    // })();
 
     //////////////// CSS classes start ////////////////////
     const adusch_style = document.createElement('style');
@@ -160,7 +126,7 @@
             border-color: inherit;
             background: inherit;
         }
-        
+
         .adusch_configcontainer section input:focus-visible, .adusch_configcontainer section input[data-focus-visible] {
             z-index: 1;
             border-color: rgb(99, 179, 237);
@@ -168,7 +134,6 @@
         }
     `;
     document.getElementsByTagName('head')[0].appendChild(adusch_style);
-
 
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
@@ -246,7 +211,7 @@
 
     const readyClassesValues = Object.values(readyClasses);
 
-    observeDOM(document.getElementById('root'), {}, readyClassesValues, (className) =>  {
+    observeDOM(document.getElementById('root'), {}, readyClassesValues, (className) => {
         if (className.startsWith('css-')) {
             // console.log('className', className);
             if (!readyClassesValues.includes(className)) return false;
