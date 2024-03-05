@@ -2,7 +2,7 @@
 // @id           autodarts-userscripts-template@https://github.com/sebudde/autodarts-userscripts-config-hub
 // @name         Autodarts Userscripts Template to use with ADUSCH
 // @namespace    https://github.com/sebudde/autodarts-userscripts-config-hub
-// @version      0.0.1
+// @version      0.0.2
 // @description  Userscript to provide a config page for play.autodarts.io.
 // @author       sebudde / dotty
 // @match        https://play.autodarts.io/*
@@ -17,9 +17,12 @@
 (function() {
   'use strict';
 
-  setTimeout(function () {
-    unsafeWindow.observeDOM(document, {}, ['adusch'], () =>  {
+  setTimeout(() => {
+    unsafeWindow.observeDOM(document, {}, ['adusch'], async () => {
       console.log('ADUSCH ready');
+
+      let option1value = (await GM.getValue('option-1') || '');
+      let option2value = (await GM.getValue('option-2') || '');
 
       const aduschConfigContainer = document.querySelector('.adusch_configcontainer');
 
@@ -28,23 +31,24 @@
           <h3>Mein Script</h3>
           <div>
             <label for="mein-script-config-option-1">Option 1</label>
-            <input id="mein-script-config-option-1" type="text" value="standard value">
+            <input id="mein-script-config-option-1" placeholder="option 1" type="text" value="${option1value}">
           </div>
           <div>
             <label for="mein-script-config-option-2">Option 2</label>
-            <input id="mein-script-config-option-2" type="text" value="standard value">
+            <input id="mein-script-config-option-2" placeholder="option 2" type="text" value="${option2value}">
           </div>
         </section>
-        `
+        `;
       const myConfigContainer = document.createElement('div');
       myConfigContainer.innerHTML = myConfig;
-      aduschConfigContainer.append(myConfigContainer)
+      aduschConfigContainer.append(myConfigContainer);
+
+      const input = myConfigContainer.querySelectorAll('input');
+      [...input].forEach((el) => (el.addEventListener('blur', (e) => {
+        GM.setValue(e.target.id.split('config-')[1], e.target.value);
+      })));
 
     });
   }, 0);
 
-
-
-
-
-})()
+})();
